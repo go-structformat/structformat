@@ -2,6 +2,8 @@ package structformat
 
 import (
 	"strings"
+
+	"gopkg.in/option.v0"
 )
 
 // interface{} being either string or []string
@@ -12,9 +14,7 @@ type Formatter interface {
 }
 
 func Format(formatter Formatter, options ...FormatOption) string {
-	opts := combineOptions(append([]FormatOption{
-		FormatWithIndent(DefaultIndent),
-	}, options...))
+	opts := option.New(options, FormatWithIndent(DefaultIndent))
 	return strings.Join(flatten(formatter.StructFormat(), 0, opts.indent), "\n")
 }
 
