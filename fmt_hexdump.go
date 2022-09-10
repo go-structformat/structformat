@@ -2,22 +2,17 @@ package structformat
 
 import (
 	"encoding/hex"
-	"strings"
 )
 
 type HexdumpFormatter []byte
 
 var _ Formatter = (*HexdumpFormatter)(nil)
 
+// Returns a HexdumpFormatter that format the bytes data using hex.Dumper().
 func Hexdump(data []byte) HexdumpFormatter {
 	return HexdumpFormatter(data)
 }
 
-func (f HexdumpFormatter) StructFormat() (ret NestedLines) {
-	for _, line := range strings.Split(hex.Dump(f), "\n") {
-		if strings.TrimSpace(line) != "" {
-			ret = append(ret, line)
-		}
-	}
-	return
+func (f HexdumpFormatter) StructFormat(w Writer) (n int, err error) {
+	return hex.Dumper(w.RemoveTrailingNewLines()).Write(f)
 }

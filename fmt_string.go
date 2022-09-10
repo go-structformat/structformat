@@ -1,26 +1,15 @@
 package structformat
 
-import (
-	"bufio"
-	"strings"
-)
-
-type StringFormatter []string
+type StringFormatter string
 
 var _ Formatter = (*StringFormatter)(nil)
 
+// Return a StringFormatter for a string. New lines will be indented according to
+// the current indent level of the formatter.
 func String(s string) StringFormatter {
-	var lines []string
-	sc := bufio.NewScanner(strings.NewReader(s))
-	for sc.Scan() {
-		lines = append(lines, sc.Text())
-	}
-	return StringFormatter(lines)
+	return StringFormatter(s)
 }
 
-func (f StringFormatter) StructFormat() (ret NestedLines) {
-	for _, line := range f {
-		ret = append(ret, line)
-	}
-	return
+func (f StringFormatter) StructFormat(w Writer) (n int, err error) {
+	return w.Write([]byte(f))
 }

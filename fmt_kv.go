@@ -1,5 +1,11 @@
 package structformat
 
+import (
+	"fmt"
+
+	"gopkg.in/option.v0"
+)
+
 type KVFormatter struct {
 	Name            string
 	Value           Formatter
@@ -8,19 +14,40 @@ type KVFormatter struct {
 
 var _ Formatter = (*KVFormatter)(nil)
 
-func KV(name string, value Formatter, newLineForValue bool) *KVFormatter {
-	return &KVFormatter{Name: name, Value: value, NewLineForValue: newLineForValue}
+// Return a KVFormatter represents a key-value pair.
+// Oftenly used inside the StructFormatter for form a map like structure.
+func KV(name string, value Formatter, options ...KVOption) *KVFormatter {
+	kv := option.New(options)
+	kv.Name = name
+	kv.Value = value
+	return kv
 }
 
-func (f *KVFormatter) StructFormat() NestedLines {
-	firstline := f.Name + `: `
-	value := f.Value.StructFormat()
-	if len(value) == 0 {
-		firstline += `( EMPTY )`
-		return NestedLines{firstline}
-	} else if str, ok := value[0].(string); ok && !f.NewLineForValue {
-		firstline += str
-		return append(NestedLines{firstline}, value[1:]...)
+func (f *KVFormatter) StructFormat(w Writer) (n int, err error) {
+	var i int
+	if i, err = fmt.Fprintf(w, "%s:", f.Name); err != nil {
+		return
 	}
-	return NestedLines{firstline + `{`, value, `}`}
+	n += i
+	subwriter := w.EmptyCheck(" ")
+	if f.NewLineForValue {
+		subwriter = w.EmptyCheck("\n").Indent(1)
+	}
+	if i, err = f.Value.StructFormat(subwriter); err != nil {
+		return
+	}
+	n += i
+	if i == 0 {
+		i, err = fmt.Fprintf(w, " ( EMPTY )")
+		n += i
+	}
+	return
+}
+
+type KVOption func(*KVFormatter)
+
+func WithNewLine() KVOption {
+	return func(k *KVFormatter) {
+		k.NewLineForValue = true
+	}
 }

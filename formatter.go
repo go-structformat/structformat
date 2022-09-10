@@ -1,46 +1,31 @@
 package structformat
 
 import (
-	"strings"
+	"bytes"
+	"io"
 
 	"gopkg.in/option.v0"
 )
 
-// interface{} being either string or []string
-type NestedLines []interface{}
-
+// Implement this interface in your data types to support sturctual formatting.
 type Formatter interface {
-	StructFormat() NestedLines
+	// Format the structual data and write to the Writer interface. Returns the number of bytes written in `n`.
+	StructFormat(Writer) (n int, err error)
 }
 
-func Format(formatter Formatter, options ...FormatOption) string {
-	opts := option.New(options, FormatWithIndent(DefaultIndent))
-	return strings.Join(flatten(formatter.StructFormat(), 0, opts.indent), "\n")
+// Format a structual data and output to the provided writer.
+func Format(writer io.Writer, formatter Formatter, options ...FormatOption) (n int, err error) {
+	w := option.New(options, withWriter(writer), WithIndent(DefaultIndent))
+	w.writerContext = &writerContext{}
+	return formatter.StructFormat(w)
 }
 
-func flatten(nestedLines NestedLines, level int, indent string) (lines []string) {
-	for _, line := range nestedLines {
-		if line == nil {
-			continue
-		} else if str, ok := line.(string); ok {
-			lines = append(lines, strings.Repeat(indent, level)+str)
-		} else if arr, ok := line.(NestedLines); ok {
-			lines = append(lines, flatten(arr, level+1, indent)...)
-		}
+// Format a structual data and return the formatted string.
+func FormatString(formatter Formatter, options ...FormatOption) (s string, err error) {
+	var w bytes.Buffer
+	if _, err = Format(&w, formatter, options...); err != nil {
+		return
 	}
+	s = w.String()
 	return
-}
-
-const DefaultIndent = "    "
-
-type FormatOption func(*formatOptions)
-
-type formatOptions struct {
-	indent string
-}
-
-func FormatWithIndent(indent string) FormatOption {
-	return func(o *formatOptions) {
-		o.indent = indent
-	}
 }

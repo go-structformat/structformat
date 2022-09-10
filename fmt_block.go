@@ -16,10 +16,24 @@ func Bracket(items ...Formatter) *BlockFormatter {
 	return &BlockFormatter{Open: "[", Close: "]", Items: items}
 }
 
-func (f *BlockFormatter) StructFormat() NestedLines {
-	var sublevel NestedLines
-	for _, item := range f.Items {
-		sublevel = append(sublevel, item.StructFormat()...)
+func (f *BlockFormatter) StructFormat(w Writer) (n int, err error) {
+	var i int
+	if i, err = w.Write([]byte(f.Open)); err != nil {
+		return
 	}
-	return NestedLines{f.Open, sublevel, f.Close}
+	n += i
+	subwriter := w.Indent(1).EmptyCheck("\n")
+	for _, item := range f.Items {
+		if i, err = item.StructFormat(subwriter); err != nil {
+			return
+		}
+		n += i
+		if i, err = subwriter.Write([]byte("\n")); err != nil {
+			return
+		}
+		n += i
+	}
+	i, err = w.Write([]byte(f.Close))
+	n += i
+	return
 }

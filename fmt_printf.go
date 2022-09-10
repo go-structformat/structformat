@@ -9,10 +9,11 @@ type PrintfFormatter struct {
 
 var _ Formatter = (*PrintfFormatter)(nil)
 
+// Return a PrintfFormatter that apply Printf template to the arguments and format them as a string.
 func Printf(format string, args ...interface{}) *PrintfFormatter {
 	return &PrintfFormatter{Fmt: format, Args: args}
 }
 
-func (f *PrintfFormatter) StructFormat() NestedLines {
-	return NestedLines{fmt.Sprintf(f.Fmt, f.Args...)}
+func (f *PrintfFormatter) StructFormat(w Writer) (n int, err error) {
+	return fmt.Fprintf(w, f.Fmt, f.Args...)
 }
