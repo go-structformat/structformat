@@ -46,7 +46,7 @@ func (f *KVFormatter) StructFormat(w Writer) (n int, err error) {
 
 type KVOption func(*KVFormatter)
 
-func WithNewLine() KVOption {
+func KVNewLine() KVOption {
 	return func(k *KVFormatter) {
 		k.NewLineForValue = true
 	}

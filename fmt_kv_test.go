@@ -4,7 +4,7 @@ import "testing"
 
 func TestEmptyKV(t *testing.T) {
 	expect := "foo: ( EMPTY )"
-	actual, err := FormatString(KV("foo", String(""), WithNewLine()))
+	actual, err := FormatString(KV("foo", String(""), KVNewLine()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func TestKVWithLineBreak(t *testing.T) {
 	expect := `foo:
     bar
     baz`
-	actual, err := FormatString(KV("foo", String("bar\nbaz"), WithNewLine()))
+	actual, err := FormatString(KV("foo", String("bar\nbaz"), KVNewLine()))
 	if err != nil {
 		t.Fatal(err)
 	}

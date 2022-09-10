@@ -22,16 +22,8 @@ type Writer interface {
 	RemoveTrailingNewLines() Writer
 }
 
-type writerContext struct {
-	lineNum    int
-	lineOffset int
-}
-
 type indentWriter struct {
-	io.Writer
-	*writerContext
-	indent string
-	level  int
+	formatOptions
 }
 
 var _ io.Writer = (*indentWriter)(nil)
@@ -45,7 +37,7 @@ func (w *indentWriter) Write(data []byte) (n int, err error) {
 			if w.lineOffset == 0 {
 				if w.level > 0 {
 					for l := 0; l < w.level; l++ {
-						if _, err = w.Writer.Write([]byte(w.indent)); err != nil {
+						if _, err = w.writer.Write([]byte(w.indent)); err != nil {
 							return
 						}
 					}
@@ -54,7 +46,7 @@ func (w *indentWriter) Write(data []byte) (n int, err error) {
 				}
 				w.lineNum += 1
 			}
-			if _, err = w.Writer.Write(data[:i]); err != nil {
+			if _, err = w.writer.Write(data[:i]); err != nil {
 				return
 			}
 			n += i
@@ -69,7 +61,7 @@ func (w *indentWriter) Write(data []byte) (n int, err error) {
 			var j int
 			for j = i + 1; j < len(data) && data[j] == '\n'; j++ {
 			}
-			if _, err = w.Writer.Write(data[i:j]); err != nil {
+			if _, err = w.writer.Write(data[i:j]); err != nil {
 				return
 			}
 			n += j - i

@@ -15,9 +15,18 @@ type Formatter interface {
 
 // Format a structual data and output to the provided writer.
 func Format(writer io.Writer, formatter Formatter, options ...FormatOption) (n int, err error) {
-	w := option.New(options, withWriter(writer), WithIndent(DefaultIndent))
-	w.writerContext = &writerContext{}
-	return formatter.StructFormat(w)
+	opts := option.New(options, initWriter(writer), WithIndent(DefaultIndent))
+	w := &indentWriter{*opts}
+	if n, err = formatter.StructFormat(w); err != nil {
+		return
+	}
+	if opts.endWithNewLine {
+		if _, err = writer.Write([]byte{'\n'}); err != nil {
+			return
+		}
+		n += 1
+	}
+	return
 }
 
 // Format a structual data and return the formatted string.
