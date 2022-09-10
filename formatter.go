@@ -11,8 +11,11 @@ type Formatter interface {
 	StructFormat() NestedLines
 }
 
-func Format(formatter Formatter, indent string) string {
-	return strings.Join(flatten(formatter.StructFormat(), 0, indent), "\n")
+func Format(formatter Formatter, options ...FormatOption) string {
+	opts := combineOptions(append([]FormatOption{
+		FormatWithIndent(DefaultIndent),
+	}, options...))
+	return strings.Join(flatten(formatter.StructFormat(), 0, opts.indent), "\n")
 }
 
 func flatten(nestedLines NestedLines, level int, indent string) (lines []string) {
@@ -26,4 +29,18 @@ func flatten(nestedLines NestedLines, level int, indent string) (lines []string)
 		}
 	}
 	return
+}
+
+const DefaultIndent = "    "
+
+type FormatOption func(*formatOptions)
+
+type formatOptions struct {
+	indent string
+}
+
+func FormatWithIndent(indent string) FormatOption {
+	return func(o *formatOptions) {
+		o.indent = indent
+	}
 }
