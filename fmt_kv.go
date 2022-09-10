@@ -16,7 +16,8 @@ func (f *KVFormatter) StructFormat() NestedLines {
 	firstline := f.Name + `: `
 	value := f.Value.StructFormat()
 	if len(value) == 0 {
-		firstline += `(no format)`
+		firstline += `( EMPTY )`
+		return NestedLines{firstline}
 	} else if str, ok := value[0].(string); ok && !f.NewLineForValue {
 		firstline += str
 		return append(NestedLines{firstline}, value[1:]...)
